@@ -32,7 +32,7 @@ public class AsyncStuffTest {
 
   @Test
   public void testExecutor() throws ExecutionException, InterruptedException {
-    int input = 3;
+    int input = 7;
     long result = asyncStuff.roundTripViaExecutor(input);
     Assert.assertEquals(input, result);
   }

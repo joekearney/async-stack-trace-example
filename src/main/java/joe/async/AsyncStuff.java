@@ -30,15 +30,15 @@ public class AsyncStuff {
     worker.start();
   }
 
-  private void scheduleCustom(@Async.Schedule Integer i, CompletableFuture<Integer> result)
+  private void scheduleCustom(@Async.Schedule Integer input, CompletableFuture<Integer> result)
       throws InterruptedException {
-    Runnable task = () -> executeCustom(i, result);
-    System.out.println("Scheduling " + i + " task: " + task);
+    Runnable task = () -> executeCustom(input, result);
+    System.out.println("Scheduling custom: " + input);
     queue.put(task);
   }
 
-  private void executeCustom(@Async.Execute Integer i, CompletableFuture<Integer> result) {
-    result.complete(methodToDebug(i));
+  private void executeCustom(@Async.Execute Integer input, CompletableFuture<Integer> result) {
+    result.complete(methodToDebug(input));
   }
 
   private static int methodToDebug(Integer input) {
@@ -49,6 +49,7 @@ public class AsyncStuff {
   }
 
   int roundTripViaExecutor(int input) throws InterruptedException, ExecutionException {
+    System.out.println("Scheduling through executor: " + input);
     return executorService.submit(() -> methodToDebug(input)).get();
   }
 
