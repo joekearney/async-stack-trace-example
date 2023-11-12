@@ -1,14 +1,12 @@
 package joe.async;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import org.jetbrains.annotations.Async;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.concurrent.*;
 
-public class AsyncStuff {
+public class AsyncStuff implements AutoCloseable {
 
   private final BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
   private final Thread worker;
@@ -59,8 +57,37 @@ public class AsyncStuff {
     return result.get();
   }
 
-  void close() {
+  @Override
+  public void close() {
     worker.interrupt();
     executorService.shutdown();
   }
+
+  public static void main(String[] args) throws ExecutionException, InterruptedException {
+    try (var a = new AsyncStuff()) {
+      a.roundTrip(3);
+      a.roundTripViaExecutor(6);
+    }
+  }
 }
+
+final class Async {
+
+  /**
+   * Indicates that the marked method schedules async computation.
+   * Scheduled object is either {@code this}, or the annotated parameter value.
+   */
+  @Retention(RetentionPolicy.CLASS)
+  @Target({ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.PARAMETER})
+  public @interface Schedule {}
+
+  /**
+   * Indicates that the marked method executes async computation.
+   * Executed object is either {@code this}, or the annotated parameter value.
+   * This object needs to match with the one annotated with {@link org.jetbrains.annotations.Async.Schedule}
+   */
+  @Retention(RetentionPolicy.CLASS)
+  @Target({ElementType.METHOD, ElementType.CONSTRUCTOR, ElementType.PARAMETER})
+  public @interface Execute {}
+}
+
